@@ -5,6 +5,7 @@ plugins {
 	id 'pl.allegro.tech.build.axion-release' version '1.13.2'
 	id "com.palantir.docker" version "0.30.0"
 	id "com.palantir.docker-run" version "0.22.1"
+	id 'jp.classmethod.aws.cloudformation' version '0.41'
 
 }
 version = scmVersion.version
@@ -13,13 +14,16 @@ repositories {
 	mavenCentral()
 }
 
-String imageName = "thasnimhm/cloud-demo:$version"
+String dockerHubUsernameProperty = findProperty('dockerHubUsername') ?: 'thasnimhm'
+String imageName = "${dockerHubUsernameProperty}/cloud-demo:$version"
 
 docker {
 	name imageName
 	files "build/libs/${bootJar.archiveFileName.get()}"
 	buildArgs([JAR_FILE: bootJar.archiveFileName.get()])
 }
+
+
 
 dockerRun {
 	name project.name
@@ -43,4 +47,19 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+aws {
+	region = findProperty('region') ?: 'ap-south-1'
+}
+
+cloudFormation {
+	stackName "$project.name-stack"
+	stackParams([
+			SubnetID: findProperty('subnetId') ?: '',
+			ServiceName: project.name,
+			ServiceVersion: project.version,
+			DockerHubUsername: dockerHubUsernameProperty
+	])
+	templateFile project.file("ecs.yml")
 }
