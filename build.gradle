@@ -13,6 +13,7 @@ sourceCompatibility = 8
 
 repositories {
 	mavenCentral()
+	jcenter()
 }
 
 dependencies {
@@ -54,9 +55,9 @@ aws {
 }
 
 cloudFormation {
-	stackName "$project.name-stack"
+	stackName "$project.name"
 	stackParams([
-			SubnetID: findProperty('subnetId') ?: 'subnet-b77508cc',
+			SubnetID: findProperty('subnetId') ?: '',
 			ServiceName: project.name,
 			ServiceVersion: project.version,
 			DockerHubUsername: dockerHubUsernameProperty
